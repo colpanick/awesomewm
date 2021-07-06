@@ -79,7 +79,19 @@ myawesomemenu = {
    { "quit", function() awesome.quit() end },
 }
 
+myappmenu = {
+    { "Vivaldi", function() awful.spawn("vivaldi-stable") end},
+    { "Firfox", function() awful.spawn("firefox") end},
+    { "Thunar", function() awful.spawn("thunar") end},
+    { "PyCharm", function() awful.spawn("pycharm") end},
+    { "VS Code", function() awful.spawn("code") end},
+    { "Discord", function() awful.spawn("discord") end},
+    { "Spotify", function() awful.spawn("spotify") end},
+    { "Joplin", function() awful.spawn("joplin-desktop") end}
+}
+
 mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
+                                    { "applications", myappmenu },
                                     { "open terminal", terminal }
                                   }
                         })
@@ -286,24 +298,42 @@ globalkeys = gears.table.join(
         {description = "go back", group = "client"}),
 
     -- Keypad
-    awful.key({modkey,            }, "KP_End", function () awful.spawn("vivaldi-stable") end,
-              {description = "Vivaldi Browser", group = "applications"}),
-    awful.key({modkey,            }, "KP_Down", function () awful.spawn("firefox myapps.dollarbank.com", {tag="1"}) end,
-              {description = "Dollar Citrix", group = "applications"}),
-    awful.key({modkey,            }, "KP_Page_Down", function () awful.spawn("spotify", {tag="8-media"}) end,
+    --1
+    awful.key({modkey,            }, "KP_End", 
+              function () awful.spawn("vivaldi-stable", {tag=screen[2].tags[4]}) end,
+              {description = "Vivaldi",  group = "applications"}),
+    --2
+    awful.key({modkey,            }, "KP_Down", 
+              function () awful.spawn("joplin-desktop", {tag="2-notes", screen="2"}) end,
+              {description = "Joplin", group = "applications"}),
+    --3
+    awful.key({modkey,            }, "KP_Page_Down", 
+              function () awful.spawn("spotify", {tag="8-music",screen="2"}) end,
               {description = "Spotify", group = "applications"}),
-    awful.key({modkey,            }, "KP_Left", function () awful.spawn("code-oss", {tag="6-dev"}) end,
-              {description = "MS Code", group = "applications"}),
-    awful.key({modkey,            }, "KP_Begin", function () awful.spawn("pycharm", {tag="6-dev"}) end,
+    --4
+    awful.key({modkey,            }, "KP_Left", 
+              function () awful.spawn("enpass", {tag="9-pw", screen="2"}) end,
+              {description = "Enpass", group = "applications"}),
+    --5
+    awful.key({modkey,            }, "KP_Begin", 
+              function () awful.spawn("discord", {tag="7-chat", screen="2"}) end,
+              {description = "Discord", group = "applications"}),
+    --6
+    awful.key({modkey,            }, "KP_Right", 
+              function () awful.spawn(terminal.." -e weechat",{tag="7-chat", screen="2"}) end,
+              {description = "WeeChat", group = "applications"}),
+    --7
+    awful.key({modkey,            }, "KP_Home", 
+              function () awful.spawn("pycharm", {tag="5-dev1", screen="1"}) end,
               {description = "pycharm", group = "applications"}),
-    awful.key({modkey,            }, "KP_Right", function () awful.spawn(terminal.." -e vim") end,
-              {description = "vim", group = "applications"}),
-    awful.key({modkey,            }, "KP_Home", function () awful.spawn(terminal.." -e glances") end,
-              {description = "Glances", group = "applications"}),
-    awful.key({modkey,            }, "KP_Up", function () awful.spawn(terminal.." -e vim ~/.config/awesome/rc.lua") end,
+    --8
+    awful.key({modkey,            }, "KP_Up", 
+              function () awful.spawn("code", {tag="6-dev2", screen="1"}) end,
               {description = "Edit Awesome config", group = "applications"}),
-    awful.key({modkey,            }, "KP_Page_Up", function () awful.spawn(terminal.." -cd ~/.config/awesome") end,
-              {description = "Open Awesome config dir", group = "applications"}),
+    --9
+    awful.key({modkey,            }, "KP_Page_Up", 
+              function () awful.spawn("firefox myapps.dollarbank.com", {tag="1"}) end,
+              {description = "Dollar Citrix", group = "applications"}),
 
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.spawn(terminal) end,
