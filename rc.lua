@@ -537,9 +537,10 @@ awful.rules.rules = {
         properties = { titlebars_enabled = false }
     },
     {
-        rule = {name="skjfl"},
+        rule = {class="Wfica"},
         properties = {
-            tag = screen[2].tags[9]
+            tag = screen[1].tags[1],
+            maximized = true
         }
 
     },

@@ -9,3 +9,4 @@ function run {
 
 run /usr/bin/imwheel
 run ~/bin/enable_mic
+run xscreensaver
