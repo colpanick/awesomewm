@@ -21,13 +21,15 @@ local myglobal = require("conf.global")
 local mytags = require("conf.tags")
 local mylayouts = require("conf.layouts")
 local mykeys = require("conf.keys")
+local mybuttons = require("conf.buttons")
 local mymenu = require("conf.menu")
+local myrules = require("conf.rules")
 
 -- Enable hotkeys help widget for VIM and other apps
 -- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
 
--- {{{ Error handling
+-- Error handling
 -- Check if awesome encountered an error during startup and fell back to
 -- another config (This code will only ever execute for the fallback config)
 if awesome.startup_errors then
@@ -73,12 +75,11 @@ mylauncher = awful.widget.launcher({ image = beautiful.awesome_icon,
                                      menu = mymainmenu })
 -- Menubar configuration
 menubar.utils.terminal = terminal -- Set the terminal for applications that require it
--- }}}
 
 -- Keyboard map indicator and switcher
 mykeyboardlayout = awful.widget.keyboardlayout()
 
--- {{{ Wibar
+-- Wibar
 -- Create a textclock widget
 mytextclock = wibox.widget.textclock ("%a %b %e %l:%M%P")
 
@@ -99,46 +100,6 @@ end
 mymiccontrol:buttons(
     awful.button({ }, 1, function () update_mic_icon(myutils.toggle_mic()) end)
 )
-
--- Create a wibox for each screen and add it
-local taglist_buttons = gears.table.join(
-                    awful.button({ }, 1, function(t) t:view_only() end),
-                    awful.button({ modkey }, 1, function(t)
-                                              if client.focus then
-                                                  client.focus:move_to_tag(t)
-                                              end
-                                          end),
-                    awful.button({ }, 3, awful.tag.viewtoggle),
-                    awful.button({ modkey }, 3, function(t)
-                                              if client.focus then
-                                                  client.focus:toggle_tag(t)
-                                              end
-                                          end),
-                    awful.button({ }, 4, function(t) awful.tag.viewnext(t.screen) end),
-                    awful.button({ }, 5, function(t) awful.tag.viewprev(t.screen) end)
-                )
-
-local tasklist_buttons = gears.table.join(
-                     awful.button({ }, 1, function (c)
-                                              if c == client.focus then
-                                                  c.minimized = true
-                                              else
-                                                  c:emit_signal(
-                                                      "request::activate",
-                                                      "tasklist",
-                                                      {raise = true}
-                                                  )
-                                              end
-                                          end),
-                     awful.button({ }, 3, function()
-                                              awful.menu.client_list({ theme = { width = 250 } })
-                                          end),
-                     awful.button({ }, 4, function ()
-                                              awful.client.focus.byidx(1)
-                                          end),
-                     awful.button({ }, 5, function ()
-                                              awful.client.focus.byidx(-1)
-                                          end))
 
 local function set_wallpaper(s)
     -- Wallpaper
@@ -179,14 +140,14 @@ awful.screen.connect_for_each_screen(function(s)
     s.mytaglist = awful.widget.taglist {
         screen  = s,
         filter  = awful.widget.taglist.filter.all,
-        buttons = taglist_buttons
+        buttons = mybuttons.taglist_buttons
     }
 
     -- Create a tasklist widget
     s.mytasklist = awful.widget.tasklist {
         screen  = s,
         filter  = awful.widget.tasklist.filter.currenttags,
-        buttons = tasklist_buttons
+        buttons = mybuttons.tasklist_buttons
     }
 
     -- Create the wibox
@@ -211,162 +172,25 @@ awful.screen.connect_for_each_screen(function(s)
         },
     }
 end)
--- }}}
 
 -- {{{ Mouse bindings
-root.buttons(gears.table.join(
-    awful.button({ }, 3, function () mymainmenu:toggle() end),
-    awful.button({ }, 4, awful.tag.viewnext),
-    awful.button({ }, 5, awful.tag.viewprev)
-))
--- }}}
-
-clientbuttons = gears.table.join(
-    awful.button({ }, 1, function (c)
-        c:emit_signal("request::activate", "mouse_click", {raise = true})
-    end),
-    awful.button({ modkey }, 1, function (c)
-        c:emit_signal("request::activate", "mouse_click", {raise = true})
-        awful.mouse.client.move(c)
-    end),
-    awful.button({ modkey }, 3, function (c)
-        c:emit_signal("request::activate", "mouse_click", {raise = true})
-        awful.mouse.client.resize(c)
-    end)
-)
+root.buttons(mybuttons.buttons)
 
 -- Set keys
 root.keys(mykeys.globalkeys)
 
--- {{{ Rules - user xprop to get info
+-- Rules - use xprop to get info
 -- Rules to apply to new clients (through the "manage" signal).
-awful.rules.rules = {
-    -- All clients will match this rule.
-    { rule = { },
-      properties = { border_width = beautiful.border_width,
-                     border_color = beautiful.border_normal,
-                     focus = awful.client.focus.filter,
-                     raise = true,
-                     keys = mykeys.clientkeys,
-                     buttons = clientbuttons,
-                    -- screen = awful.screen.preferred,
-                     placement = awful.placement.no_overlap+awful.placement.no_offscreen,
-                     titlebars_enabled = true
-     }
-    },
-    -- No titlebars
-    {
-        rule_any = {
-            class = {
-                "URxvt",
-                "Eog" -- Eye of Gnome image viewer (Already has buttons)
-            }
-        },
-        properties = { titlebars_enabled = false }
-    },
-    {
-        rule = {class="Wfica"},
-        properties = {
-            tag = "1",
-            screen =1,
-            maximized = true,
-        }
-
-    },
-    {
-        rule = {class="Joplin"},
-        properties = {
-            tag = "2-notes",
-            screen = 2,
-        }
-    },
-    {
-        rule_any = {
-            name = {
-                "Spotify",
-                "Spotify Premium",
-            },
-            class = {
-                "spotify",
-                "Spotify",
-            }
-        },
-        properties = {
-            tag = "8-music",
-            screen = 2,
-            floating = true,
-            titlebars_enabled = false,
-        }
-    },
-    {
-        rule = {class="discord"},
-        properties = {
-            tag = screen[2].tags[7]
-        }
-    },
-    {
-        rule = {name="Enpass"},
-        except = {name="Enpass Assistant"},
-        properties = {
-            tag = "9-pw",
-            screen = 2,
-        }
-    },
-
-    -- Floating clients.
-    { rule_any = {
-        instance = {
-          "DTA",  -- Firefox addon DownThemAll.
-          "copyq",  -- Includes session name in class.
-          "pinentry",
-        },
-        class = {
-          "Arandr",
-          "Blueman-manager",
-          "Gpick",
-          "Kruler",
-          "MessageWin",  -- kalarm.
-          "Sxiv",
-          "Tor Browser", -- Needs a fixed window size to avoid fingerprinting by screen size.
-          "Wpa_gui",
-          "veromix",
-          "xtightvncviewer",
-          "Gimp-2.10",
-          "Gnome-calculator",
-      },
+awful.rules.rules = myrules.rules
 
 
-        -- Note that the name property shown in xprop might be set slightly after creation of the client
-        -- and the name shown there might not match defined rules here.
-        name = {
-          "Event Tester",  -- xev.
-        },
-        role = {
-          "AlarmWindow",  -- Thunderbird's calendar.
---          "browser-window",
-          "ConfigManager",  -- Thunderbird's about:config.
-          "pop-up",       -- e.g. Google Chrome's (detached) Developer Tools.
-        }
-      }, properties = { floating = true, titlebars_enabled = true }},
-
-    -- Add titlebars to normal clients and dialogs
-    --{ rule_any = {type = { "normal", "dialog" }
-    --  }, properties = { titlebars_enabled = false }
-    --},
-
-    -- Set Firefox to always map on the tag named "2" on screen 1.
-    -- { rule = { class = "Firefox" },
-    --   properties = { screen = 1, tag = "2" } },
-}
--- }}}
-
--- {{{ Signals
+-- Signals
 -- Signal function to execute when a new client appears.
 client.connect_signal("manage", function (c)
     -- Set the windows at the slave,
     -- i.e. put it at the end of others instead of setting it master.
     -- if not awesome.startup then awful.client.setslave(c) end
-
+    c.shape = gears.shape.rounded_rect
     if awesome.startup
       and not c.size_hints.user_position
       and not c.size_hints.program_position then
@@ -416,14 +240,9 @@ client.connect_signal("request::titlebars", function(c)
     }
 end)
 
--- Enable sloppy focus, so that focus follows mouse.
---client.connect_signal("mouse::enter", function(c)
---    c:emit_signal("request::activate", "mouse_enter", {raise = false})
---end)
 
 client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus end)
 client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
--- }}}
 
 awful.spawn.with_shell("~/.config/awesome/autorun.sh")
 gears.timer { timeout=1, call_now=true, autostart=true, callback = function () update_mic_icon(myutils.get_mic_state()) end }
